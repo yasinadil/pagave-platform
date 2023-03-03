@@ -4,20 +4,19 @@ import { useAccount } from "wagmi";
 import Image from "next/image";
 import Link from "next/link";
 import Logo from "/public/logo.png";
-import placeholderImg from "/public/img-placeholder.png";
 import Locked from "/public/locked.png";
-import ActionButton from "/components/ActionButton/ActionButton";
+import ActionButton from "../../../components/ActionButton/ActionButton";
 import PocketBase from "pocketbase";
-import { accessContractAddress, subscriptionAddress } from "/utils/Config";
 import { ethers, BigNumber } from "ethers";
+import {
+  accessContractAddress,
+  subscriptionAddress,
+} from "../../../utils/Config";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Ubuntu } from "@next/font/google";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 const AccessABI = require("/utils/ABI/accessABI.json");
 const subscriptionABI = require("/utils/ABI/subscriptionABI.json");
-const ubuntu = Ubuntu({
-  weight: "500",
-  subsets: ["latin"],
-});
 
 async function getPurchaseInformation(wallet: string, id: string) {
   try {
@@ -26,7 +25,7 @@ async function getPurchaseInformation(wallet: string, id: string) {
       filter: `walletAddress = "${wallet}" && productID = "${id}"`,
     });
     return result?.items[0];
-  } catch (error) {
+  } catch (error: any) {
     return { error: error.message };
   }
 }
@@ -39,7 +38,7 @@ async function getAllProduct(id: string) {
     }
   );
   const data = await res.json();
-  return data as object;
+  return data as product;
 }
 
 async function getBlobUrls(url: string) {
@@ -47,7 +46,7 @@ async function getBlobUrls(url: string) {
     cache: "no-store",
   });
 
-  let objUrl = null;
+  let objUrl = "";
   const blob = await res.blob();
 
   objUrl = URL.createObjectURL(blob);
@@ -55,31 +54,73 @@ async function getBlobUrls(url: string) {
   return objUrl as string;
 }
 
+interface video {
+  videoName: string;
+  thumbnail: string;
+}
+
+interface product {
+  collectionId: string;
+  id: string;
+  productName: string;
+  subscription: boolean;
+  subscriptionPrice: number;
+  productPrice: number;
+  thumbnail: string;
+  description: string;
+  videos: video[];
+  created: string;
+}
+
+interface url {
+  videoName: string;
+  link: string;
+}
+
+interface prodURLs {
+  id: string;
+  urls: url[];
+  productid: string;
+}
+
 function Product({ params }: any) {
   const productId = params.product;
   const { address, isConnected } = useAccount();
-  const [pDetails, setPDetails] = useState<Object>({});
-  const [cObj, setCObj] = useState<Array>([]);
-  const [walletAddress, setWalletAddress] = useState<string>("");
-  const [videoData, setVideoData] = useState<object[]>([{}]);
-  const [videoClick, setVideoClick] = useState<bool>(false);
-  const [subscribealble, setSubscribealble] = useState<bool>(false);
-  const [subEnded, setSubEnded] = useState<bool>(false);
-  const [subscribed, setSubscribed] = useState<bool>(false);
+  const [pDetails, setPDetails] = useState<product>();
+  const [cObj, setCObj] = useState<video[]>();
+  const [videoData, setVideoData] = useState<url[]>();
+  const [videoClick, setVideoClick] = useState<boolean>(false);
+  const [subscribealble, setSubscribealble] = useState<boolean>(false);
+  const [subEnded, setSubEnded] = useState<boolean>(false);
   const [videosrc, setVideoSrc] = useState<string>("");
-  const [access, setAccess] = useState<bool>(false);
-  const [catAccess, setCatAccess] = useState<bool>(false);
+  const [access, setAccess] = useState<boolean>(false);
   const searchParams = useSearchParams();
+  const search = searchParams.get("catIndex");
   const router = useRouter();
 
   useEffect(() => {
     if (isConnected && address) {
-      setWalletAddress(address);
-      const search = searchParams.get("catIndex");
-      async function accessWait() {
-        const accessres = await checkAccess(address, search);
+      accessWait();
+    }
+    async function load1() {
+      if (address != undefined) {
+        const res = await getPurchaseInformation(address, productId);
 
-        const productDetails = await getAllProduct(productId);
+        if (res === undefined) {
+          setVideoData([]);
+        } else {
+          const urls = await getUrls(productId);
+          setVideoData(urls);
+          setAccess(true);
+        }
+      }
+    }
+
+    async function accessWait() {
+      if (address != undefined && search != null) {
+        const accessres = await checkAccess(address, Number(search));
+
+        const productDetails: product = await getAllProduct(productId);
         const subscribe = productDetails.subscription;
 
         if (!accessres) {
@@ -90,18 +131,6 @@ function Product({ params }: any) {
           load1();
           load();
         }
-      }
-      accessWait();
-    }
-    async function load1() {
-      const res = await getPurchaseInformation(address, productId);
-
-      if (res === undefined) {
-        setVideoData([{}]);
-      } else {
-        const urls = await getUrls(productId);
-        setVideoData(urls);
-        setAccess(true);
       }
     }
 
@@ -127,26 +156,25 @@ function Product({ params }: any) {
       }
 
       if (isSubscribed && Number(subscriptionEndTimes) > currentTime) {
-        setSubscribed(true);
         const urls = await getUrls(productId);
         setVideoData(urls);
         setAccess(true);
         load();
       } else {
         load();
-        setVideoData([{}]);
+        setVideoData([]);
       }
     };
 
     async function load() {
-      const productDetails = await getAllProduct(productId);
+      const productDetails: product = await getAllProduct(productId);
       setPDetails(productDetails);
-      const contentObj = productDetails.videos;
+      const contentObj: video[] = productDetails.videos;
       setCObj(contentObj);
       const subscribe = productDetails.subscription;
       setSubscribealble(subscribe);
     }
-  }, [productId, address, isConnected, catAccess, searchParams, router]);
+  }, [productId, address, isConnected, searchParams, router]);
 
   const getUrls = async (productId: string) => {
     const response = await fetch("/api/getVideoInformation", {
@@ -160,7 +188,7 @@ function Product({ params }: any) {
     });
 
     const data = await response.json();
-    return data.message as array;
+    return data.message as url[];
   };
 
   const checkAccess = async (address: string, catIndex: number) => {
@@ -176,11 +204,82 @@ function Product({ params }: any) {
     return access;
   };
 
+  const purchase = async (
+    walletAddress: string,
+    productID: string,
+    purchaseTxHash: string
+  ) => {
+    const response = await fetch("/api/addPurchaseRecord", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        walletAddress,
+        productID,
+        purchaseTxHash,
+      }),
+    });
+
+    const data = await response.json();
+    console.log(data.message);
+  };
+
+  const sendTx = async () => {
+    const provider = new ethers.providers.Web3Provider(window.ethereum as any);
+    const signer = provider.getSigner();
+    const gasPrice = provider.getGasPrice();
+
+    try {
+      let pPrice;
+      let pId;
+
+      if (pDetails != undefined) {
+        pPrice = pDetails.productPrice;
+        pId = pDetails.id;
+      }
+
+      const tx = {
+        from: address,
+        to: "0x25591dCe3C34320ED69aaBC1642d3fC04990832b",
+        value: BigNumber.from(ethers.utils.parseEther(pPrice.toString())),
+        gasPrice: gasPrice,
+        nonce: provider.getTransactionCount(address!, "latest"),
+      };
+      const transaction = await signer.sendTransaction(tx);
+      await provider.waitForTransaction(transaction.hash);
+      purchase(address!, pId, transaction.hash);
+      router.refresh();
+      toast.success("Transfer Complete!", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+    } catch (error: any) {
+      let message = error.reason;
+      toast.error(message, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+    }
+  };
+
   return (
     <div className="bgclass min-h-screen font-normal text-white text-xl">
       <div className="p-2">
         <Link href="/">
-          <Image className="w-[20vh]" src={Logo} alt="logo" priority="true" />
+          <Image className="w-[20vh]" src={Logo} alt="logo" priority={true} />
         </Link>
       </div>
       <div className="desktop:container laptop:container mx-auto">
@@ -194,22 +293,23 @@ function Product({ params }: any) {
               src={videosrc}
             />
           ) : (
-            <img
-              className="desktop:w-[50vw] laptop:w-[40vw] mobile:w-[90vw] mx-auto my-auto rounded-2xl"
-              src={pDetails.thumbnail}
-              alt="thumbnail"
-              priority="true"
-            />
+            pDetails != undefined && (
+              <img
+                className="desktop:w-[50vw] laptop:w-[40vw] mobile:w-[90vw] mx-auto my-auto rounded-2xl"
+                src={pDetails.thumbnail}
+                alt="thumbnail"
+              />
+            )
           )}
 
           <div className="desktop:grid desktop:grid-cols-2 p-4 mt-10">
             <div className="mx-4 p-3 rounded-2xl glassEffect h-48">
               <div className="my-10">
                 <h2 className="text-2xl ubuntu.className">
-                  {pDetails.productName}
+                  {pDetails != undefined && pDetails.productName}
                 </h2>
 
-                {pDetails.subscription ? (
+                {pDetails != undefined && pDetails.subscription ? (
                   !subEnded ? (
                     <Link
                       className="fixed top-8 right-4"
@@ -225,14 +325,28 @@ function Product({ params }: any) {
                   ) : null
                 ) : (
                   !access && (
-                    <ActionButton
-                      productPrice={pDetails.productPrice}
-                      productID={pDetails.id}
-                    />
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        sendTx();
+                      }}
+                    >
+                      <button
+                        type="submit"
+                        className="float-right glassEffect rounded-xl py-2 px-2 text-center fixed top-8 right-4"
+                      >
+                        <p className=" text-base font-semibold">
+                          {pDetails != undefined && pDetails.productPrice} ETH
+                        </p>
+                        <p className="font-light">Purchase</p>
+                      </button>
+                    </form>
                   )
                 )}
               </div>
-              <p className="text-base">{pDetails.description}</p>
+              <p className="text-base">
+                {pDetails != undefined && pDetails.description}
+              </p>
             </div>
 
             <div className="mx-4 p-3 rounded-2xl glassEffect desktop:pt-10 laptop:pt-10 tablet:pt-10 mobile:pt-10 desktop:mt-0 laptop:mt-0 tablet:mt-0 mobile:mt-6">
@@ -240,7 +354,8 @@ function Product({ params }: any) {
                 Content
               </span>
               {!access &&
-                cObj.map((data: object, index: number) => {
+                cObj != undefined &&
+                cObj.map((data: video, index: number) => {
                   return (
                     <div
                       key={index}
@@ -252,7 +367,6 @@ function Product({ params }: any) {
                           className="w-[80px] inline mr-4"
                           src={data.thumbnail}
                           alt="thumbnail"
-                          priority="true"
                         />
                         <span className="my-auto">{data.videoName} </span>
                       </div>
@@ -265,7 +379,8 @@ function Product({ params }: any) {
                 })}
 
               {access &&
-                videoData.map((data: object, index: number) => {
+                videoData != undefined &&
+                videoData.map((data, index: number) => {
                   return (
                     <div
                       key={index}

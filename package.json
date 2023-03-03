@@ -18,7 +18,6 @@
     "blob-url-to-file": "^1.0.0",
     "daisyui": "^2.50.1",
     "encoding": "^0.1.13",
-    "eslint": "8.34.0",
     "eslint-config-next": "13.1.6",
     "ethers": "^5.7.2",
     "fs": "^0.0.1-security",
@@ -39,7 +38,10 @@
     "wagmi": "^0.10.15"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.54.0",
+    "@typescript-eslint/parser": "^5.54.0",
     "autoprefixer": "^10.4.13",
+    "eslint": "^8.35.0",
     "js-obfuscator": "^0.1.4",
     "postcss": "^8.4.21",
     "tailwindcss": "^3.2.6"

@@ -1,17 +1,15 @@
 "use client";
 import * as React from "react";
-import PocketBase from "pocketbase";
 import { ethers, BigNumber } from "ethers";
 import { useAccount } from "wagmi";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 function ActionButton(props) {
-  const [purchaseTxHash, setPurchaseTxHash] = React.useState("");
   const [productID, setProductID] = React.useState("");
   const [walletAddress, setWalletAddress] = React.useState("");
-  const { address, isConnected } = useAccount();
+  const { address } = useAccount();
   const productid = props.productID;
   const router = useRouter();
 
@@ -27,14 +25,6 @@ function ActionButton(props) {
     productID: string,
     purchaseTxHash: string
   ) => {
-    console.log(
-      JSON.stringify({
-        walletAddress,
-        productID,
-        purchaseTxHash,
-      })
-    );
-
     const response = await fetch("/api/addPurchaseRecord", {
       method: "POST",
       headers: {
@@ -64,12 +54,10 @@ function ActionButton(props) {
           ethers.utils.parseEther(props.productPrice.toString())
         ),
         gasPrice: gasPrice,
-        nonce: provider.getTransactionCount(address, "latest"),
+        nonce: provider.getTransactionCount(address!, "latest"),
       };
       const transaction = await signer.sendTransaction(tx);
-      console.log(transaction);
-      setPurchaseTxHash(transaction.hash);
-      const wait = await provider.waitForTransaction(transaction.hash);
+      await provider.waitForTransaction(transaction.hash);
       purchase(walletAddress, productID, transaction.hash);
       router.refresh();
       toast.success("Transfer Complete!", {
@@ -82,7 +70,7 @@ function ActionButton(props) {
         progress: undefined,
         theme: "light",
       });
-    } catch (error) {
+    } catch (error: any) {
       let message = error.reason;
       toast.error(message, {
         position: "top-right",

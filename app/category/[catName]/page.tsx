@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import mainLogo from "/public/logo.png";
-import degree from "/public/degree.png";
 import ProductCard from "../../../components/ProductCard/ProductCard";
 import { useSearchParams } from "next/navigation";
 
@@ -34,13 +33,13 @@ async function getDetails(name: string) {
   );
   const data = await res.json();
   let fields;
-  data?.items.map((data, index) => {
+  data?.items.map((data) => {
     if (data.name == name) {
       fields = data;
     }
   });
 
-  return fields as string[];
+  return fields as category;
 }
 
 async function getAllProducts(id: string) {
@@ -58,25 +57,37 @@ async function getAllProducts(id: string) {
     }
   });
 
-  return fields as string[];
+  return fields as products;
 }
 
-// interface category {
-//   collectionId: string;
-//   collectionName: string;
-//   created: string;
-//   description: string;
-//   field: string[];
-//   id: string;
-//   name: string;
-//   questionnaire: string;
-// }
+interface category {
+  collectionId: string;
+  collectionName: string;
+  created: string;
+  description: string;
+  field: string[];
+  id: string;
+  name: string;
+  questionnaire: string;
+}
+
+interface products {
+  collectionId: string;
+  id: string;
+  productName: string;
+  subscription: boolean;
+  subscriptionPrice: number;
+  productPrice: number;
+  thumbnail: string;
+  description: string;
+  videos: object;
+  created: string;
+}
 
 function Category({ params }: any) {
   const catName = params.catName;
-  const [allProductsId, setAllProductsId] = useState<string[]>([]);
-  const [productsDetails, setProductsDetails] = useState([]);
-  const [categoryDetails, setCategoryDetails] = useState<any>({});
+  const [productsDetails, setProductsDetails] = useState<products[]>([]);
+  const [categoryDetails, setCategoryDetails] = useState<category>();
   const [catIndex, setCatIndex] = useState<number>(0);
   const searchParams = useSearchParams();
 
@@ -88,7 +99,6 @@ function Category({ params }: any) {
       }
 
       const ProductsId = await getAllProductsId(catName);
-      setAllProductsId(ProductsId);
       const categoryDetail = await getDetails(catName);
       setCategoryDetails(categoryDetail);
 
@@ -120,9 +130,9 @@ function Category({ params }: any) {
               {catName}
             </span>
             <p className="text-center text-black font-bold font-sans my-12">
-              {categoryDetails.description}
+              {categoryDetails != undefined && categoryDetails.description}
             </p>
-            {categoryDetails.questionnaire != undefined &&
+            {categoryDetails != undefined &&
             categoryDetails.questionnaire != "" ? (
               <div className="font-sans font-semibold glassEffect text-white py-4 rounded-2xl">
                 <p className="text-center"> Link to questionnaire</p>
@@ -139,21 +149,24 @@ function Category({ params }: any) {
         </div>
 
         <div className="desktop:grid desktop:grid-cols-4 laptop:grid laptop:grid-cols-4 mobile:grid mobile:grid-cols-1 tablet:flex tablet:flex-grow tablet:flex-wrap tablet:gap-x-4 tablet:gap-y-8 mobile:gap-x-4 mobile:gap-y-8 desktop:mx-12 mobile:mx-0 desktop:py-8 laptop:py-8 mobile:py-4">
-          {productsDetails.map((data, index) => {
-            return (
-              <ProductCard
-                key={index}
-                id={data.id}
-                name={data.productName}
-                source={data.thumbnail}
-                subscription={data.subscription}
-                cost={
-                  data.subscription ? data.subscriptionPrice : data.productPrice
-                }
-                catid={catIndex}
-              />
-            );
-          })}
+          {productsDetails != undefined &&
+            productsDetails.map((data, index) => {
+              return (
+                <ProductCard
+                  key={index}
+                  id={data.id}
+                  name={data.productName}
+                  source={data.thumbnail}
+                  subscription={data.subscription}
+                  cost={
+                    data.subscription
+                      ? data.subscriptionPrice
+                      : data.productPrice
+                  }
+                  catid={catIndex}
+                />
+              );
+            })}
         </div>
       </div>
     </div>

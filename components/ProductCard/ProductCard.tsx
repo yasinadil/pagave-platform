@@ -1,15 +1,12 @@
 "use client";
 import * as React from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { accessContractAddress } from "/utils/Config";
-import { ethers, BigNumber } from "ethers";
 import { useAccount } from "wagmi";
 const AccessABI = require("/utils/ABI/accessABI.json");
 
 function ProductCard(props) {
   const [walletAddress, setWalletAddress] = React.useState<string>("");
-  const [access, setAccess] = React.useState<bool>(false);
+  const [access, setAccess] = React.useState<boolean>(false);
   const { address, isConnected } = useAccount();
 
   React.useEffect(() => {

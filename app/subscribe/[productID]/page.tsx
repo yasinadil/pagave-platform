@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { subscriptionAddress } from "/utils/Config";
+import { subscriptionAddress } from "../../../utils/Config";
 import { ethers, BigNumber } from "ethers";
 import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
@@ -21,7 +21,7 @@ function Subscribe({ params }: any) {
   const [subDuration, setSubDuration] = React.useState<string>("");
   const { address, isConnected } = useAccount();
   const [walletAddress, setWalletAddress] = useState<string>("");
-  const [subEnded, setSubEnded] = useState<bool>(false);
+  const [subEnded, setSubEnded] = useState<boolean>(false);
 
   React.useEffect(() => {
     if (isConnected && address) {
@@ -82,7 +82,7 @@ function Subscribe({ params }: any) {
         theme: "light",
       });
       router.back();
-    } catch (error) {
+    } catch (error: any) {
       let message = error.reason;
       console.log(error);
 
@@ -123,7 +123,7 @@ function Subscribe({ params }: any) {
         theme: "light",
       });
       router.back();
-    } catch (error) {
+    } catch (error: any) {
       let message = error.reason;
       console.log(error);
 
@@ -144,7 +144,7 @@ function Subscribe({ params }: any) {
     <div className="hero min-h-screen bg-[#621B9E]">
       <div className="p-2">
         <Link href="/">
-          <Image className="w-[20vh]" src={Logo} alt="logo" priority="true" />
+          <Image className="w-[20vh]" src={Logo} alt="logo" priority={true} />
         </Link>
       </div>
       <div className="hero-content">

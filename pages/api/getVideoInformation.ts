@@ -1,12 +1,18 @@
 // Import required dependencies
 import PocketBase from "pocketbase";
 
+interface url {
+  videoName: string;
+  link: string;
+}
+
 export default async function handler(req, res) {
   const { productId } = req.body;
 
   const pb = new PocketBase("http://127.0.0.1:8090");
-  const authData = await pb.admins.authWithPassword(
-    process.env.PB_ADMIN_EMAIL, process.env.PB_ADMIN_PASS
+  await pb.admins.authWithPassword(
+    process.env.PB_ADMIN_EMAIL!,
+    process.env.PB_ADMIN_PASS!
   );
   const token = pb.authStore.token;
 
@@ -18,7 +24,7 @@ export default async function handler(req, res) {
     Authorization: `Bearer ${token}`,
   };
 
-  const dd = await fetch(apiEndpoint, {
+  fetch(apiEndpoint, {
     method: "GET",
     headers: headers,
   })
@@ -26,10 +32,10 @@ export default async function handler(req, res) {
     .then((data) => {
       let urls = "No urls";
 
-      data?.items.map((item, index) => {
+      data?.items.map((item) => {
         if (item.productid == productId) {
           urls = item.urls;
-          return item.urls as Array;
+          return item.urls as url;
         }
       });
       res.status(200).json({ message: urls });
