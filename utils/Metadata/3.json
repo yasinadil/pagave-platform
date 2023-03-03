@@ -1,0 +1,17 @@
+{
+    "name": "VERSLAS Access",
+    "description": "This NFT grants access to the VERSLAS category on the Pagave Platform.",
+    "image": "ipfs://bafybeiaz5agiuznp3gt3fcajgocl6ylqpq3dsgqzshlu73ptyjn32hvvhe",
+    "edition": 1,
+    "date": 1676990298114,
+    "attributes": [
+      {
+        "trait_type": "Platform",
+        "value": "Pagave"
+      },
+      {
+        "trait_type": "Access",
+        "value": "VERSLAS"
+      }
+    ]
+  }

@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.bgclass {
+    background-image: url("../public/bg.jpeg");
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
+  body{
+    font-family: "Cabin";
+  }
+
+  .heading {
+    font-family: "Wedding";
+  }
+
+  @font-face {
+    font-family: "Wedding";
+    src: url(../public/WeddingGothicATFWide-Light.otf);
+  }
+
+  @font-face {
+    font-family: "Cabin";
+    src: url(../public/Cabin-Regular.ttf);
+  }
+
+  .glassEffect {
+    backdrop-filter: blur(3px) saturate(180%);
+    -webkit-backdrop-filter: blur(3px) saturate(180%);
+    background-color: rgba(17, 25, 40, 0.514);
+  }

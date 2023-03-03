@@ -1,0 +1,17 @@
+{
+    "name": "SAVIUGDA Access",
+    "description": "This NFT grants access to the SAVIUGDA category on the Pagave Platform.",
+    "image": "ipfs://bafybeiam37dscg32465gp7h2qeziilv4qrlhmbuqcjpfzy5didje4hv53m",
+    "edition": 1,
+    "date": 1676990298114,
+    "attributes": [
+      {
+        "trait_type": "Platform",
+        "value": "Pagave"
+      },
+      {
+        "trait_type": "Access",
+        "value": "SAVIUGDA"
+      }
+    ]
+  }
