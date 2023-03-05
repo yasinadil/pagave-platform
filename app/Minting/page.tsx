@@ -9,8 +9,9 @@ import "react-toastify/dist/ReactToastify.css";
 import Image from "next/image";
 import Link from "next/link";
 import Logo from "/public/logo.png";
-const AccessABI = require("/utils/ABI/accessABI.json");
-const metadata = require("/utils/Metadata/metadata.json");
+import { log } from "console";
+const AccessABI = require("../../utils/ABI/accessABI.json");
+const metadata = require("../../utils/Metadata/metadata.json");
 
 function MintingPage() {
   const searchParams = useSearchParams();
@@ -18,6 +19,7 @@ function MintingPage() {
   const router = useRouter();
   const { address, isConnected } = useAccount();
   const [mintbtn, setMintbtn] = React.useState<boolean>(false);
+  const Metadata = metadata[Number(search)];
 
   React.useEffect(() => {
     if (isConnected && address) {
@@ -90,7 +92,8 @@ function MintingPage() {
           <Image className="w-[20vh]" src={Logo} alt="logo" priority={true} />
         </Link>
       </div>
-      {metadata.image == undefined ? (
+
+      {Metadata.image == undefined ? (
         <div className="rounded-md p-4 max-w-md w-full mx-auto">
           <div className="animate-pulse">
             <div className="flex justify-center">
@@ -108,11 +111,11 @@ function MintingPage() {
         <div className="hero-content text-center">
           <div className="card card-compact desktop:w-96 laptop:w-96 tablet:w-96 mobile:w-80 glassEffect shadow-xl">
             <figure>
-              <img src={metadata.image} alt="NFT picture" />
+              <img src={Metadata.image} alt="NFT picture" />
             </figure>
             <div className="card-body">
-              <h2 className="card-title">{metadata.name}</h2>
-              <p className="text-left py-4">{metadata.description}</p>
+              <h2 className="card-title">{Metadata.name}</h2>
+              <p className="text-left py-4">{Metadata.description}</p>
               <div className="card-actions justify-end">
                 {mintbtn ? (
                   <button className="btn loading">Minting...</button>
