@@ -17,7 +17,7 @@ export default async function Home() {
   return (
     <div>
       <div className="hero bgclass min-h-screen heading">
-        <div className="hero-content text-center desktop:w-[1000px] border-4 border-[#621B9E]">
+        <div className="hero-content text-center desktop:w-[1000px] laptop:w-[1000px] border-4 border-[#621B9E]">
           <div className="">
             <div className="flex justify-center">
               <Image className="w-[30vh]" src={logo} alt="logo" />

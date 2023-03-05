@@ -91,6 +91,8 @@ function Product({ params }: any) {
   const searchParams = useSearchParams();
   const search = searchParams.get("catIndex");
   const router = useRouter();
+  const loadingVideo =
+    "https://bafkreihwjxofnkk33xwjgtmhvj4k4dmogyzy72gjwzlsflnfppnv5lxosq.ipfs.nftstorage.link";
 
   useEffect(() => {
     if (isConnected && address) {
@@ -270,6 +272,7 @@ function Product({ params }: any) {
   };
 
   async function getBlob(url: string) {
+    setVideoSrc(loadingVideo);
     const blobbed = await getBlobUrls(url);
     setVideoSrc(blobbed);
   }
@@ -285,8 +288,8 @@ function Product({ params }: any) {
         <div className="mt-12">
           {videoClick ? (
             <video
-              className="desktop:w-[50vw] laptop:w-[40vw] mobile:w-[90vw] mx-auto my-auto p-4 glassEffect"
-              controls
+              className="desktop:w-[50vw] laptop:w-[70vw] mobile:w-[90vw] mx-auto my-auto p-4 glassEffect rounded-2xl"
+              controls={videosrc !== loadingVideo}
               autoPlay
               controlsList="nodownload"
               src={videosrc}
@@ -294,14 +297,14 @@ function Product({ params }: any) {
           ) : (
             pDetails != undefined && (
               <img
-                className="desktop:w-[50vw] laptop:w-[40vw] mobile:w-[90vw] mx-auto my-auto rounded-2xl"
+                className="desktop:w-[50vw] laptop:w-[70vw] mobile:w-[90vw] mx-auto my-auto rounded-2xl"
                 src={pDetails.thumbnail}
                 alt="thumbnail"
               />
             )
           )}
 
-          <div className="desktop:grid desktop:grid-cols-2 p-4 mt-10">
+          <div className="desktop:grid desktop:grid-cols-2 laptop:grid laptop:grid-cols-2 p-4 mt-10">
             <div className="mx-4 p-3 rounded-2xl glassEffect h-48">
               <div className="my-10">
                 <h2 className="text-2xl ubuntu.className">
@@ -386,9 +389,7 @@ function Product({ params }: any) {
                       className="my-4 p-3 flex justify-between hover:backdrop-blur-sm rounded-xl cursor-pointer"
                       onClick={() => {
                         setVideoClick(true);
-
                         getBlob(data.link);
-
                         window.scrollTo({ top: 0, behavior: "smooth" });
                       }}
                     >
