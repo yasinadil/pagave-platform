@@ -91,111 +91,6 @@ function Product({ params }: any) {
   const searchParams = useSearchParams();
   const search = searchParams.get("catIndex");
   const router = useRouter();
-  const videoRef = React.useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    async function videoLoad() {
-      const mediaSource = new MediaSource();
-
-      const video = document.querySelector("video");
-
-      // video.oncanplay = e => video.play();
-
-      const urls = [
-        "ipfs://bafybeihuecvbecxdzgs3j2fa6vlk7xmrbeiofbk5w725hmko4qfwhore4a",
-      ];
-
-      const request = (url) =>
-        fetch(url).then((response) => response.arrayBuffer());
-
-      // `urls.reverse()` stops at `.currentTime` : `9`
-      const files = await Promise.all(urls.map(request));
-
-      /*
-       `.webm` files 'SourceBuffer': This SourceBuffer has been removed from the parent media
-       Uncaught DOMException: Failed to execute 'appendBuffer' on source.
-       Uncaught DOMException: Failed to set the 'timestampOffset' property on 'SourceBuffer': This SourceBuffer has been removed from the parent media source.
-      */
-      // const mimeCodec = "video/webm; codecs=opus";
-      // https://stackoverflow.com/questions/14108536/how-do-i-append-two-video-files-data-to-a-source-buffer-using-media-source-api/
-      const mimeCodec = 'video/mp4; codecs="avc1.42E01E,mp4a.40.2"';
-
-      const media = await Promise.all(
-        files.map((file) => {
-          return new Promise((resolve) => {
-            let media = document.createElement("video");
-            let blobURL = URL.createObjectURL(new Blob([file]));
-            media.onloadedmetadata = async (e) => {
-              resolve({
-                mediaDuration: media.duration,
-                mediaBuffer: file,
-              });
-            };
-            media.src = blobURL;
-          });
-        })
-      );
-
-      console.log(media);
-
-      mediaSource.addEventListener("sourceopen", sourceOpen);
-
-      video!.src = URL.createObjectURL(mediaSource);
-
-      async function sourceOpen(event) {
-        if (MediaSource.isTypeSupported(mimeCodec)) {
-          const sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
-
-          for (let chunk of media) {
-            await new Promise((resolve) => {
-              sourceBuffer.appendBuffer((chunk as any).mediaBuffer);
-              sourceBuffer.onupdateend = (e) => {
-                sourceBuffer.onupdateend = null;
-                sourceBuffer.timestampOffset += (chunk as any).mediaDuration;
-                console.log(mediaSource.duration);
-                resolve(sourceBuffer);
-              };
-            });
-          }
-
-          mediaSource.endOfStream();
-        } else {
-          console.warn(mimeCodec + " not supported");
-        }
-      }
-    }
-    videoLoad();
-
-    // const videoElement = videoRef.current;
-    // const mediaSource = new MediaSource();
-    // if (videoElement != null) {
-    //   videoElement.src = URL.createObjectURL(mediaSource);
-    //   mediaSource.addEventListener("sourceopen", () => {
-    //     const sourceBuffer = mediaSource.addSourceBuffer(
-    //       'video/mp4; codecs="avc1.42E01E,mp4a.40.2"'
-    //     );
-
-    //     fetch(
-    //       "https://raw.githubusercontent.com/chromium/chromium/b4b3566f27d2814fbba1b115639eb7801dd691cf/media/test/data/bear-vp9-opus.webm"
-    //     )
-    //       .then((response) => response.arrayBuffer())
-    //       .then((data) => {
-    //         sourceBuffer.appendBuffer(data);
-    //       })
-    //       .catch((error) => {
-    //         console.error("Error fetching video:", error);
-    //       });
-    //   });
-
-    //   videoElement.addEventListener("error", (event: ErrorEvent) => {
-    //     console.error("Video error:", (event.target as HTMLMediaElement).error);
-    //   });
-
-    //   return () => {
-    //     mediaSource.endOfStream();
-    //   };
-    // }
-  }, []);
 
   useEffect(() => {
     if (isConnected && address) {
@@ -266,7 +161,6 @@ function Product({ params }: any) {
         setVideoData([]);
       } else {
         const urls = await getUrls(productId);
-
         setVideoData(urls);
         setAccess(true);
       }
@@ -283,7 +177,6 @@ function Product({ params }: any) {
         productId,
       }),
     });
-
     const data = await response.json();
     return data.message as url[];
   };
@@ -320,6 +213,11 @@ function Product({ params }: any) {
 
     const data = await response.json();
     console.log(data.message);
+
+    setTimeout(() => {
+      console.log("this is the first message");
+      window.location.reload();
+    }, 5000);
   };
 
   const sendTx = async () => {
@@ -345,9 +243,6 @@ function Product({ params }: any) {
       };
       const transaction = await signer.sendTransaction(tx);
       const wait = await provider.waitForTransaction(transaction.hash);
-      load1();
-      purchase(address!, pId, transaction.hash);
-
       toast.success("Transfer Complete!", {
         position: "top-right",
         autoClose: 5000,
@@ -358,6 +253,7 @@ function Product({ params }: any) {
         progress: undefined,
         theme: "light",
       });
+      purchase(address!, pId, transaction.hash);
     } catch (error: any) {
       let message = error.reason;
       toast.error(message, {
@@ -373,6 +269,11 @@ function Product({ params }: any) {
     }
   };
 
+  async function getBlob(url: string) {
+    const blobbed = await getBlobUrls(url);
+    setVideoSrc(blobbed);
+  }
+
   return (
     <div className="bgclass min-h-screen font-normal text-white text-xl">
       <div className="p-2">
@@ -382,20 +283,14 @@ function Product({ params }: any) {
       </div>
       <div className="desktop:container laptop:container mx-auto">
         <div className="mt-12">
-          {!videoClick ? (
-            // <video
-            //   className="desktop:w-[50vw] laptop:w-[40vw] mobile:w-[90vw] mx-auto my-auto p-4 glassEffect"
-            //   controls
-            //   autoPlay
-            //   controlsList="nodownload"
-            //   src={videosrc}
-            // />
-            // <video ref={videoRef} width="640" height="360" controls>
-            //   <source type="video/mp4" />
-            // </video>
-            <video controls>
-              <source src="" type="video/webm" />
-            </video>
+          {videoClick ? (
+            <video
+              className="desktop:w-[50vw] laptop:w-[40vw] mobile:w-[90vw] mx-auto my-auto p-4 glassEffect"
+              controls
+              autoPlay
+              controlsList="nodownload"
+              src={videosrc}
+            />
           ) : (
             pDetails != undefined && (
               <img
@@ -490,8 +385,10 @@ function Product({ params }: any) {
                       key={index}
                       className="my-4 p-3 flex justify-between hover:backdrop-blur-sm rounded-xl cursor-pointer"
                       onClick={() => {
-                        setVideoSrc(data.link);
                         setVideoClick(true);
+
+                        getBlob(data.link);
+
                         window.scrollTo({ top: 0, behavior: "smooth" });
                       }}
                     >

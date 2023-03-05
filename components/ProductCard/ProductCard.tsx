@@ -87,17 +87,15 @@ function ProductCard(props) {
         <div className="card-actions justify-end">
           {props.subscription ? (
             <button className=" glassEffect rounded-xl py-2 px-2 text-center w-full h-16">
-              <p className=" text-base font-semibold">
-                {!subscribed && subEnded && (
-                  <p className="text-base font-semibold">{props.cost} ETH</p>
-                )}
-                {subscribed && subEnded && (
-                  <p className="text-base font-semibold">{props.cost} ETH</p>
-                )}
-                {!subscribed && !subEnded && (
-                  <p className="text-base font-semibold">{props.cost} ETH</p>
-                )}
-              </p>
+              {!subscribed && subEnded && (
+                <p className="text-base font-semibold">{props.cost} ETH</p>
+              )}
+              {subscribed && subEnded && (
+                <p className="text-base font-semibold">{props.cost} ETH</p>
+              )}
+              {!subscribed && !subEnded && (
+                <p className="text-base font-semibold">{props.cost} ETH</p>
+              )}
               {!subscribed && <p className="font-light">Subscribe</p>}{" "}
               {subscribed && subEnded && (
                 <p className="font-bold text-warning">Renew Subscription</p>
