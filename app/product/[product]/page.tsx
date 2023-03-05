@@ -1,11 +1,10 @@
 "use client";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAccount } from "wagmi";
 import Image from "next/image";
 import Link from "next/link";
 import Logo from "/public/logo.png";
 import Locked from "/public/locked.png";
-import ActionButton from "../../../components/ActionButton/ActionButton";
 import PocketBase from "pocketbase";
 import { ethers, BigNumber } from "ethers";
 import {
@@ -15,12 +14,13 @@ import {
 import { useSearchParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
 const AccessABI = require("/utils/ABI/accessABI.json");
 const subscriptionABI = require("/utils/ABI/subscriptionABI.json");
 
 async function getPurchaseInformation(wallet: string, id: string) {
   try {
-    const pb = new PocketBase("http://127.0.0.1:8090");
+    const pb = new PocketBase(process.env.NEXT_PUBLIC_PBURL!);
     const result = await pb.collection("purchases").getList(1, 30, {
       filter: `walletAddress = "${wallet}" && productID = "${id}"`,
     });
@@ -32,7 +32,7 @@ async function getPurchaseInformation(wallet: string, id: string) {
 
 async function getAllProduct(id: string) {
   const res = await fetch(
-    `http://127.0.0.1:8090/api/collections/products/records/${id}`,
+    `${process.env.NEXT_PUBLIC_PBURL!}/api/collections/products/records/${id}`,
     {
       cache: "no-store",
     }
@@ -77,12 +77,6 @@ interface url {
   link: string;
 }
 
-interface prodURLs {
-  id: string;
-  urls: url[];
-  productid: string;
-}
-
 function Product({ params }: any) {
   const productId = params.product;
   const { address, isConnected } = useAccount();
@@ -97,29 +91,120 @@ function Product({ params }: any) {
   const searchParams = useSearchParams();
   const search = searchParams.get("catIndex");
   const router = useRouter();
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    async function videoLoad() {
+      const mediaSource = new MediaSource();
+
+      const video = document.querySelector("video");
+
+      // video.oncanplay = e => video.play();
+
+      const urls = [
+        "ipfs://bafybeihuecvbecxdzgs3j2fa6vlk7xmrbeiofbk5w725hmko4qfwhore4a",
+      ];
+
+      const request = (url) =>
+        fetch(url).then((response) => response.arrayBuffer());
+
+      // `urls.reverse()` stops at `.currentTime` : `9`
+      const files = await Promise.all(urls.map(request));
+
+      /*
+       `.webm` files 'SourceBuffer': This SourceBuffer has been removed from the parent media
+       Uncaught DOMException: Failed to execute 'appendBuffer' on source.
+       Uncaught DOMException: Failed to set the 'timestampOffset' property on 'SourceBuffer': This SourceBuffer has been removed from the parent media source.
+      */
+      // const mimeCodec = "video/webm; codecs=opus";
+      // https://stackoverflow.com/questions/14108536/how-do-i-append-two-video-files-data-to-a-source-buffer-using-media-source-api/
+      const mimeCodec = 'video/mp4; codecs="avc1.42E01E,mp4a.40.2"';
+
+      const media = await Promise.all(
+        files.map((file) => {
+          return new Promise((resolve) => {
+            let media = document.createElement("video");
+            let blobURL = URL.createObjectURL(new Blob([file]));
+            media.onloadedmetadata = async (e) => {
+              resolve({
+                mediaDuration: media.duration,
+                mediaBuffer: file,
+              });
+            };
+            media.src = blobURL;
+          });
+        })
+      );
+
+      console.log(media);
+
+      mediaSource.addEventListener("sourceopen", sourceOpen);
+
+      video!.src = URL.createObjectURL(mediaSource);
+
+      async function sourceOpen(event) {
+        if (MediaSource.isTypeSupported(mimeCodec)) {
+          const sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
+
+          for (let chunk of media) {
+            await new Promise((resolve) => {
+              sourceBuffer.appendBuffer((chunk as any).mediaBuffer);
+              sourceBuffer.onupdateend = (e) => {
+                sourceBuffer.onupdateend = null;
+                sourceBuffer.timestampOffset += (chunk as any).mediaDuration;
+                console.log(mediaSource.duration);
+                resolve(sourceBuffer);
+              };
+            });
+          }
+
+          mediaSource.endOfStream();
+        } else {
+          console.warn(mimeCodec + " not supported");
+        }
+      }
+    }
+    videoLoad();
+
+    // const videoElement = videoRef.current;
+    // const mediaSource = new MediaSource();
+    // if (videoElement != null) {
+    //   videoElement.src = URL.createObjectURL(mediaSource);
+    //   mediaSource.addEventListener("sourceopen", () => {
+    //     const sourceBuffer = mediaSource.addSourceBuffer(
+    //       'video/mp4; codecs="avc1.42E01E,mp4a.40.2"'
+    //     );
+
+    //     fetch(
+    //       "https://raw.githubusercontent.com/chromium/chromium/b4b3566f27d2814fbba1b115639eb7801dd691cf/media/test/data/bear-vp9-opus.webm"
+    //     )
+    //       .then((response) => response.arrayBuffer())
+    //       .then((data) => {
+    //         sourceBuffer.appendBuffer(data);
+    //       })
+    //       .catch((error) => {
+    //         console.error("Error fetching video:", error);
+    //       });
+    //   });
+
+    //   videoElement.addEventListener("error", (event: ErrorEvent) => {
+    //     console.error("Video error:", (event.target as HTMLMediaElement).error);
+    //   });
+
+    //   return () => {
+    //     mediaSource.endOfStream();
+    //   };
+    // }
+  }, []);
 
   useEffect(() => {
     if (isConnected && address) {
       accessWait();
     }
-    async function load1() {
-      if (address != undefined) {
-        const res = await getPurchaseInformation(address, productId);
-
-        if (res === undefined) {
-          setVideoData([]);
-        } else {
-          const urls = await getUrls(productId);
-          setVideoData(urls);
-          setAccess(true);
-        }
-      }
-    }
 
     async function accessWait() {
       if (address != undefined && search != null) {
         const accessres = await checkAccess(address, Number(search));
-
         const productDetails: product = await getAllProduct(productId);
         const subscribe = productDetails.subscription;
 
@@ -133,48 +218,60 @@ function Product({ params }: any) {
         }
       }
     }
+  }, [productId, address, isConnected, searchParams, router]);
 
-    const checkSubscription = async () => {
-      const provider = new ethers.providers.Web3Provider(
-        window.ethereum as any
-      );
-      const signer = provider.getSigner(address);
-      const subContract = new ethers.Contract(
-        subscriptionAddress,
-        subscriptionABI,
-        signer
-      );
+  const checkSubscription = async () => {
+    const provider = new ethers.providers.Web3Provider(window.ethereum as any);
+    const signer = provider.getSigner(address);
+    const subContract = new ethers.Contract(
+      subscriptionAddress,
+      subscriptionABI,
+      signer
+    );
 
-      const isSubscribed = await subContract.subscribed(address, productId);
-      console.log(isSubscribed);
+    const isSubscribed = await subContract.subscribed(address, productId);
+    const subEnd = await subContract.subscriptionEndTimes(address, productId);
+    const subscriptionEndTimes = subEnd.toString();
+    const currentTime = Date.now() / 1000;
+    if (isSubscribed && Number(subscriptionEndTimes) > currentTime) {
+      setSubEnded(true);
+    }
 
-      const subEnd = await subContract.subscriptionEndTimes(address, productId);
-      const subscriptionEndTimes = subEnd.toString();
-      const currentTime = Date.now() / 1000;
-      if (isSubscribed && Number(subscriptionEndTimes) > currentTime) {
-        setSubEnded(true);
-      }
+    if (isSubscribed && Number(subscriptionEndTimes) > currentTime) {
+      const urls = await getUrls(productId);
 
-      if (isSubscribed && Number(subscriptionEndTimes) > currentTime) {
+      setVideoData(urls);
+      setAccess(true);
+      load();
+    } else {
+      load();
+      setVideoData([]);
+    }
+  };
+
+  async function load() {
+    const productDetails: product = await getAllProduct(productId);
+    setPDetails(productDetails);
+    const contentObj: video[] = productDetails.videos;
+    setCObj(contentObj);
+    const subscribe = productDetails.subscription;
+    setSubscribealble(subscribe);
+  }
+
+  async function load1() {
+    if (address != undefined) {
+      const res = await getPurchaseInformation(address, productId);
+
+      if (res === undefined) {
+        setVideoData([]);
+      } else {
         const urls = await getUrls(productId);
+
         setVideoData(urls);
         setAccess(true);
-        load();
-      } else {
-        load();
-        setVideoData([]);
       }
-    };
-
-    async function load() {
-      const productDetails: product = await getAllProduct(productId);
-      setPDetails(productDetails);
-      const contentObj: video[] = productDetails.videos;
-      setCObj(contentObj);
-      const subscribe = productDetails.subscription;
-      setSubscribealble(subscribe);
     }
-  }, [productId, address, isConnected, searchParams, router]);
+  }
 
   const getUrls = async (productId: string) => {
     const response = await fetch("/api/getVideoInformation", {
@@ -247,9 +344,10 @@ function Product({ params }: any) {
         nonce: provider.getTransactionCount(address!, "latest"),
       };
       const transaction = await signer.sendTransaction(tx);
-      await provider.waitForTransaction(transaction.hash);
+      const wait = await provider.waitForTransaction(transaction.hash);
+      load1();
       purchase(address!, pId, transaction.hash);
-      router.refresh();
+
       toast.success("Transfer Complete!", {
         position: "top-right",
         autoClose: 5000,
@@ -284,14 +382,20 @@ function Product({ params }: any) {
       </div>
       <div className="desktop:container laptop:container mx-auto">
         <div className="mt-12">
-          {videoClick ? (
-            <video
-              className="desktop:w-[50vw] laptop:w-[40vw] mobile:w-[90vw] mx-auto my-auto p-4 glassEffect"
-              controls
-              autoPlay
-              controlsList="nodownload"
-              src={videosrc}
-            />
+          {!videoClick ? (
+            // <video
+            //   className="desktop:w-[50vw] laptop:w-[40vw] mobile:w-[90vw] mx-auto my-auto p-4 glassEffect"
+            //   controls
+            //   autoPlay
+            //   controlsList="nodownload"
+            //   src={videosrc}
+            // />
+            // <video ref={videoRef} width="640" height="360" controls>
+            //   <source type="video/mp4" />
+            // </video>
+            <video controls>
+              <source src="" type="video/webm" />
+            </video>
           ) : (
             pDetails != undefined && (
               <img
@@ -386,9 +490,9 @@ function Product({ params }: any) {
                       key={index}
                       className="my-4 p-3 flex justify-between hover:backdrop-blur-sm rounded-xl cursor-pointer"
                       onClick={() => {
+                        setVideoSrc(data.link);
                         setVideoClick(true);
                         window.scrollTo({ top: 0, behavior: "smooth" });
-                        setVideoSrc(data.link);
                       }}
                     >
                       <div>
@@ -396,7 +500,7 @@ function Product({ params }: any) {
                           className="w-[80px] inline mr-4"
                           src={data.link}
                         />
-                        <span className="my-auto">{data.videoName} </span>
+                        <span className="my-auto">{data.videoName}</span>
                       </div>
                     </div>
                   );

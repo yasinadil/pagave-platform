@@ -2,13 +2,14 @@
 import PocketBase from "pocketbase";
 
 export default async function handler(req, res) {
-  const apiEndpoint = "http://127.0.0.1:8090/api/collections/purchases/records";
+  const apiEndpoint = `${process.env
+    .NEXT_PUBLIC_PBURL!}/api/collections/purchases/records`;
 
   const record = req.body;
 
   // Add code to create a new record in your database using the data from the request body
-  const pb = new PocketBase("http://127.0.0.1:8090");
-  const authData = await pb.admins.authWithPassword(
+  const pb = new PocketBase(process.env.NEXT_PUBLIC_PBURL!);
+  await pb.admins.authWithPassword(
     process.env.PB_ADMIN_EMAIL!,
     process.env.PB_ADMIN_PASS!
   );

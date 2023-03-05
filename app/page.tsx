@@ -1,14 +1,9 @@
 import Image from "next/image";
-import { Inter } from "@next/font/google";
-import styles from "./page.module.css";
 import Link from "next/link";
 import logo from "/public/logo.png";
 import PocketBase from "pocketbase";
-
-const inter = Inter({ subsets: ["latin"] });
-
 async function getAllCategories() {
-  const pb = new PocketBase("http://127.0.0.1:8090");
+  const pb = new PocketBase(process.env.NEXT_PUBLIC_PBURL!);
   const records = await pb
     .collection("categories")
     .getFullList(200 /* batch size */, {

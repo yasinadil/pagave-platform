@@ -5,17 +5,18 @@ import Link from "next/link";
 import mainLogo from "/public/logo.png";
 import ProductCard from "../../../components/ProductCard/ProductCard";
 import { useSearchParams } from "next/navigation";
+import { ethers } from "ethers";
 
 async function getAllProductsId(name: string) {
   const res = await fetch(
-    "http://127.0.0.1:8090/api/collections/categories/records",
+    `${process.env.NEXT_PUBLIC_PBURL!}/api/collections/categories/records`,
     {
       cache: "no-store",
     }
   );
   const data = await res.json();
   let fields;
-  data?.items.map((data, index) => {
+  data?.items.map((data) => {
     if (data.name == name) {
       fields = data.field;
     }
@@ -26,7 +27,7 @@ async function getAllProductsId(name: string) {
 
 async function getDetails(name: string) {
   const res = await fetch(
-    "http://127.0.0.1:8090/api/collections/categories/records",
+    `${process.env.NEXT_PUBLIC_PBURL!}/api/collections/categories/records`,
     {
       cache: "no-store",
     }
@@ -44,7 +45,7 @@ async function getDetails(name: string) {
 
 async function getAllProducts(id: string) {
   const res = await fetch(
-    "http://127.0.0.1:8090/api/collections/products/records",
+    `${process.env.NEXT_PUBLIC_PBURL!}/api/collections/products/records`,
     {
       cache: "no-store",
     }
@@ -89,6 +90,7 @@ function Category({ params }: any) {
   const [productsDetails, setProductsDetails] = useState<products[]>([]);
   const [categoryDetails, setCategoryDetails] = useState<category>();
   const [catIndex, setCatIndex] = useState<number>(0);
+  const [status, setStatus] = useState<boolean>(true);
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -111,9 +113,21 @@ function Category({ params }: any) {
           ]);
         }
       }
+      setStatus(false);
     }
     load();
   }, [catName, searchParams]);
+
+  if (status) {
+    return (
+      <div className="hero min-h-screen bg-[#120F22]">
+        <div className="hero-content text-center bg-transparent">
+          <p className="text-purple-800">Loading </p>
+          <progress className="progress w-56"></progress>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bgclass">
@@ -163,6 +177,7 @@ function Category({ params }: any) {
                       ? data.subscriptionPrice
                       : data.productPrice
                   }
+                  description={data.description}
                   catid={catIndex}
                 />
               );

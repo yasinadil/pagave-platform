@@ -58,7 +58,7 @@ export default function RootLayout({
 
           <WagmiConfig client={wagmiClient}>
             <RainbowKitProvider chains={chains}>
-              {/* <Navbar /> */}
+              <Navbar />
               {children}
             </RainbowKitProvider>
           </WagmiConfig>

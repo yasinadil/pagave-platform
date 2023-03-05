@@ -27,36 +27,48 @@ function Subscribe({ params }: any) {
     if (isConnected && address) {
       setWalletAddress(address);
     }
-    async function loadPrice() {
-      const provider = new ethers.providers.JsonRpcProvider(
-        `https://eth-goerli.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API}`
-      );
-      const subContract = new ethers.Contract(
-        subscriptionAddress,
-        subscriptionABI,
-        provider
-      );
-
-      const product = await subContract.ProductDetails(productID);
-      const subPrice = product.subscriptionCost;
-      setSubCost(subPrice.toString());
-
-      const subDur = product.subscriptionDuration;
-      const subDurStr = subDur.toString();
-      const subDurNum = Number(subDurStr) / 86400;
-      setSubDuration(`${subDurNum} Days`);
-
-      const isSubscribed = await subContract.subscribed(address, productID);
-
-      const subEnd = await subContract.subscriptionEndTimes(address, productID);
-      const subscriptionEndTimes = subEnd.toString();
-      const currentTime = Date.now() / 1000;
-      if (isSubscribed && Number(subscriptionEndTimes) > currentTime) {
-        setSubEnded(true);
-      }
-    }
     loadPrice();
+    checkSubbed();
   }, [address, isConnected, productID]);
+
+  async function checkSubbed() {
+    const provider = new ethers.providers.Web3Provider(window.ethereum as any);
+    let signer = provider.getSigner();
+    const subContract = new ethers.Contract(
+      subscriptionAddress,
+      subscriptionABI,
+      signer
+    );
+
+    const isSubscribed = await subContract.subscribed(address, productID);
+
+    const subEnd = await subContract.subscriptionEndTimes(address, productID);
+    const subscriptionEndTimes = subEnd.toString();
+    const currentTime = Date.now() / 1000;
+    if (isSubscribed && Number(subscriptionEndTimes) > currentTime) {
+      setSubEnded(true);
+    }
+  }
+
+  async function loadPrice() {
+    const provider = new ethers.providers.JsonRpcProvider(
+      `https://eth-goerli.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API}`
+    );
+    const subContract = new ethers.Contract(
+      subscriptionAddress,
+      subscriptionABI,
+      provider
+    );
+
+    const product = await subContract.ProductDetails(productID);
+    const subPrice = product.subscriptionCost;
+    setSubCost(subPrice.toString());
+
+    const subDur = product.subscriptionDuration;
+    const subDurStr = subDur.toString();
+    const subDurNum = Number(subDurStr) / 86400;
+    setSubDuration(`${subDurNum} Days`);
+  }
 
   const handleSubscribe = async () => {
     const provider = new ethers.providers.Web3Provider(window.ethereum as any);
@@ -141,8 +153,8 @@ function Subscribe({ params }: any) {
   };
 
   return (
-    <div className="hero min-h-screen bg-[#621B9E]">
-      <div className="p-2">
+    <div className="hero min-h-screen bgclass text-white">
+      <div className="fixed top-2 left-2">
         <Link href="/">
           <Image className="w-[20vh]" src={Logo} alt="logo" priority={true} />
         </Link>

@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { accessContractAddress } from "/utils/Config";
+import { accessContractAddress } from "../../utils/Config";
 import { ethers, BigNumber } from "ethers";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
@@ -9,44 +9,36 @@ import "react-toastify/dist/ReactToastify.css";
 import Image from "next/image";
 import Link from "next/link";
 import Logo from "/public/logo.png";
-import imgPlaceholder from "/public/img-placeholder.png";
 const AccessABI = require("/utils/ABI/accessABI.json");
 const metadata = require("/utils/Metadata/metadata.json");
 
-function MintingPage(params: type) {
+function MintingPage() {
   const searchParams = useSearchParams();
   const search = searchParams.get("catIndex");
   const router = useRouter();
   const { address, isConnected } = useAccount();
-  const [nftMetadata, setNftMetadata] = React.useState<object>({
-    name: "loading...",
-    description: "loading...",
-    image: "loading...",
-  });
-  const [mintbtn, setMintbtn] = React.useState<bool>(false);
+  const [mintbtn, setMintbtn] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     if (isConnected && address) {
-      async function check() {
-        const provider = new ethers.providers.Web3Provider(
-          window.ethereum as any
-        );
-        const signer = provider.getSigner(address);
-        const accessContract = new ethers.Contract(
-          accessContractAddress,
-          AccessABI,
-          signer
-        );
-
-        const access = await accessContract.accessGranted(address, search);
-        if (access == true) {
-          router.back();
-        }
-      }
       check();
-      setNftMetadata(metadata[search]);
     }
   }, [address, router, isConnected, search]);
+
+  async function check() {
+    const provider = new ethers.providers.Web3Provider(window.ethereum as any);
+    const signer = provider.getSigner(address);
+    const accessContract = new ethers.Contract(
+      accessContractAddress,
+      AccessABI,
+      signer
+    );
+
+    const access = await accessContract.accessGranted(address, search);
+    if (access == true) {
+      router.back();
+    }
+  }
 
   const handleMint = async () => {
     const provider = new ethers.providers.Web3Provider(window.ethereum as any);
@@ -75,7 +67,7 @@ function MintingPage(params: type) {
       });
       setMintbtn(false);
       router.back();
-    } catch (error) {
+    } catch (error: any) {
       setMintbtn(false);
       let message = error.reason;
       toast.error(message, {
@@ -95,10 +87,10 @@ function MintingPage(params: type) {
     <div className="hero min-h-screen bgclass text-white">
       <div className="fixed top-2 left-2">
         <Link href="/">
-          <Image className="w-[20vh]" src={Logo} alt="logo" priority="true" />
+          <Image className="w-[20vh]" src={Logo} alt="logo" priority={true} />
         </Link>
       </div>
-      {nftMetadata.image == "loading..." ? (
+      {metadata.image == undefined ? (
         <div className="rounded-md p-4 max-w-md w-full mx-auto">
           <div className="animate-pulse">
             <div className="flex justify-center">
@@ -116,11 +108,11 @@ function MintingPage(params: type) {
         <div className="hero-content text-center">
           <div className="card card-compact desktop:w-96 laptop:w-96 tablet:w-96 mobile:w-80 glassEffect shadow-xl">
             <figure>
-              <img src={nftMetadata.image} alt="NFT picture" prority="true" />
+              <img src={metadata.image} alt="NFT picture" />
             </figure>
             <div className="card-body">
-              <h2 className="card-title">{nftMetadata.name}</h2>
-              <p className="text-left py-4">{nftMetadata.description}</p>
+              <h2 className="card-title">{metadata.name}</h2>
+              <p className="text-left py-4">{metadata.description}</p>
               <div className="card-actions justify-end">
                 {mintbtn ? (
                   <button className="btn loading">Minting...</button>
