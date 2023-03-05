@@ -11,8 +11,8 @@ export default async function handler(req, res) {
 
   const pb = new PocketBase(process.env.NEXT_PUBLIC_PBURL!);
   await pb.admins.authWithPassword(
-    process.env.PB_ADMIN_EMAIL!,
-    process.env.PB_ADMIN_PASS!
+    process.env.NEXT_PUBLIC_PB_ADMIN_EMAIL!,
+    process.env.NEXT_PUBLIC_PB_ADMIN_PASS!
   );
   const token = pb.authStore.token;
 
