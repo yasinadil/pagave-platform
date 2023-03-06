@@ -2,33 +2,28 @@
 import * as React from "react";
 import Link from "next/link";
 import { useAccount } from "wagmi";
+import PocketBase from "pocketbase";
 import { ethers } from "ethers";
 import { subscriptionAddress } from "../../utils/Config";
 const subscriptionABI = require("/utils/ABI/subscriptionABI.json");
 
+export const dynamic = "auto",
+  dynamicParams = true,
+  revalidate = 0,
+  fetchCache = "auto",
+  runtime = "nodejs",
+  preferredRegion = "auto";
+
 async function getPurchaseInformation(wallet: string, id: string) {
   try {
-    const data = fetch(
-      `${process.env.NEXT_PUBLIC_PBURL!}/api/collections/purchases/records`,
-      { cache: "no-store" }
-    );
-    let result: any = [];
-    const res = await (await data).json();
-    res.items.map((data) => {
-      if (data.walletAddress === wallet && data.productID === id) {
-        result.push(data);
-      }
+    const pb = new PocketBase(process.env.NEXT_PUBLIC_PBURL!);
+    const result = await pb.collection("purchases").getList(1, 30, {
+      filter: `walletAddress = "${wallet}" && productID = "${id}"`,
     });
-    return result;
+    return result?.items[0];
   } catch (error: any) {
     return { error: error.message };
   }
-}
-
-interface purchase {
-  walletAddress: string;
-  productID: string;
-  length: number;
 }
 
 function ProductCard(props) {
@@ -39,29 +34,17 @@ function ProductCard(props) {
   const [subEnded, setSubEnded] = React.useState<boolean>(false);
 
   React.useEffect(() => {
-    async function checkChainID() {
-      const provider = new ethers.providers.JsonRpcProvider(
-        process.env.NEXT_PUBLIC_ALCHEMY_API
-      );
-
-      if (isConnected && address) {
-        setWalletAddress(address);
-        checkSubbed();
-        checkPurchase();
-      }
+    if (isConnected && address) {
+      setWalletAddress(address);
+      checkSubbed();
+      checkPurchase();
     }
-
-    checkChainID();
   }, [address, isConnected]);
 
   async function checkPurchase() {
-    const res: purchase = await getPurchaseInformation(address!, props.id);
+    const response = await getPurchaseInformation(address!, props.id);
 
-    if (
-      res.length !== 0 &&
-      res[0].walletAddress === address &&
-      res[0].productID === props.id
-    ) {
+    if (response != undefined || response != null) {
       setPurchased(true);
     }
   }

@@ -30,15 +30,13 @@ export default async function handler(req, res) {
     "Content-Type": "application/json",
     Authorization: `Bearer ${token}`,
   };
-
+  let urls = [];
   fetch(apiEndpoint, {
     method: "GET",
     headers: headers,
   })
     .then((response) => response.json())
     .then((data) => {
-      let urls = [];
-
       data?.items.map((item) => {
         if (item.productid == productId) {
           urls = item.url;
