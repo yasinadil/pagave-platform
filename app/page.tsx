@@ -15,7 +15,7 @@ async function getAllCategories() {
   const records = await pb
     .collection("categories")
     .getFullList(200 /* batch size */, {
-      sort: "+name",
+      sort: "+created",
     });
   return records as any[];
 }
