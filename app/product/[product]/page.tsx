@@ -248,7 +248,7 @@ function Product({ params }: any) {
 
       const tx = {
         from: address,
-        to: process.env.NEXT_PUBLIC_OWNER,
+        to: "0x25591dce3c34320ed69aabc1642d3fc04990832b",
         value: BigNumber.from(ethers.utils.parseEther(pPrice.toString())),
         gasPrice: gasPrice,
         nonce: provider.getTransactionCount(address!, "latest"),
