@@ -1,16 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import logo from "/public/logo.png";
-import PocketBase from "pocketbase";
-// async function getAllCategories() {
-//   const pb = new PocketBase(process.env.NEXT_PUBLIC_PBURL!);
-//   const records = await pb
-//     .collection("categories")
-//     .getFullList(200 /* batch size */, {
-//       sort: "+name",
-//     });
-//   return records as any[];
-// }
 
 async function getAllCategories() {
   const data = fetch(
@@ -19,14 +9,6 @@ async function getAllCategories() {
   );
   const res = await (await data).json();
   return res.items as any[];
-
-  // const pb = new PocketBase(process.env.NEXT_PUBLIC_PBURL!);
-  // const records = await pb
-  //   .collection("categories")
-  //   .getFullList(200 /* batch size */, {
-  //     sort: "+name",
-  //   });
-  // return records as any[];
 }
 
 export default async function Home() {

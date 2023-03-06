@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import Logo from "/public/logo.png";
 import Locked from "/public/locked.png";
-import PocketBase from "pocketbase";
 import { ethers, BigNumber } from "ethers";
 import {
   accessContractAddress,
@@ -14,17 +13,25 @@ import {
 import { useSearchParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { StringLiteral } from "typescript";
 
 const AccessABI = require("/utils/ABI/accessABI.json");
 const subscriptionABI = require("/utils/ABI/subscriptionABI.json");
 
 async function getPurchaseInformation(wallet: string, id: string) {
   try {
-    const pb = new PocketBase(process.env.NEXT_PUBLIC_PBURL!);
-    const result = await pb.collection("purchases").getList(1, 30, {
-      filter: `walletAddress = "${wallet}" && productID = "${id}"`,
+    const data = fetch(
+      `${process.env.NEXT_PUBLIC_PBURL!}/api/collections/purchases/records`,
+      { cache: "no-store" }
+    );
+    let result: any = [];
+    const res = await (await data).json();
+    res.items.map((data) => {
+      if (data.walletAddress === wallet && data.productID === id) {
+        result.push(data);
+      }
     });
-    return result?.items[0];
+    return result;
   } catch (error: any) {
     return { error: error.message };
   }
@@ -75,6 +82,12 @@ interface product {
 interface url {
   videoName: string;
   link: string;
+}
+
+interface purchase {
+  walletAddress: string;
+  productID: string;
+  length: number;
 }
 
 function Product({ params }: any) {
@@ -157,11 +170,15 @@ function Product({ params }: any) {
 
   async function load1() {
     if (address != undefined) {
-      const res = await getPurchaseInformation(address, productId);
+      const res: purchase = await getPurchaseInformation(address, productId);
 
-      if (res === undefined) {
+      if (res.length === 0) {
         setVideoData([]);
-      } else {
+        setAccess(false);
+      } else if (
+        res[0].walletAddress === address &&
+        res[0].productID === productId
+      ) {
         const urls = await getUrls(productId);
         setVideoData(urls);
         setAccess(true);

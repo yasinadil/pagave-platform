@@ -2,21 +2,33 @@
 import * as React from "react";
 import Link from "next/link";
 import { useAccount } from "wagmi";
-import PocketBase from "pocketbase";
 import { ethers } from "ethers";
 import { subscriptionAddress } from "../../utils/Config";
 const subscriptionABI = require("/utils/ABI/subscriptionABI.json");
 
 async function getPurchaseInformation(wallet: string, id: string) {
   try {
-    const pb = new PocketBase(process.env.NEXT_PUBLIC_PBURL!);
-    const result = await pb.collection("purchases").getList(1, 30, {
-      filter: `walletAddress = "${wallet}" && productID = "${id}"`,
+    const data = fetch(
+      `${process.env.NEXT_PUBLIC_PBURL!}/api/collections/purchases/records`,
+      { cache: "no-store" }
+    );
+    let result: any = [];
+    const res = await (await data).json();
+    res.items.map((data) => {
+      if (data.walletAddress === wallet && data.productID === id) {
+        result.push(data);
+      }
     });
-    return result?.items[0];
+    return result;
   } catch (error: any) {
     return { error: error.message };
   }
+}
+
+interface purchase {
+  walletAddress: string;
+  productID: string;
+  length: number;
 }
 
 function ProductCard(props) {
@@ -43,9 +55,13 @@ function ProductCard(props) {
   }, [address, isConnected]);
 
   async function checkPurchase() {
-    const response = await getPurchaseInformation(address!, props.id);
+    const res: purchase = await getPurchaseInformation(address!, props.id);
 
-    if (response != undefined || response != null) {
+    if (
+      res.length !== 0 &&
+      res[0].walletAddress === address &&
+      res[0].productID === props.id
+    ) {
       setPurchased(true);
     }
   }

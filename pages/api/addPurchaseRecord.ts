@@ -1,6 +1,13 @@
 // Import required dependencies
 import PocketBase from "pocketbase";
 
+export const dynamic = "auto",
+  dynamicParams = true,
+  revalidate = 0,
+  fetchCache = "auto",
+  runtime = "nodejs",
+  preferredRegion = "auto";
+
 export default async function handler(req, res) {
   const apiEndpoint = `${process.env
     .NEXT_PUBLIC_PBURL!}/api/collections/purchases/records`;

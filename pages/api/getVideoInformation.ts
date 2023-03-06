@@ -6,6 +6,13 @@ interface url {
   link: string;
 }
 
+export const dynamic = "auto",
+  dynamicParams = true,
+  revalidate = 0,
+  fetchCache = "auto",
+  runtime = "nodejs",
+  preferredRegion = "auto";
+
 export default async function handler(req, res) {
   const { productId } = req.body;
 
