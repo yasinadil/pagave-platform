@@ -132,11 +132,10 @@ function Category({ params }: any) {
   return (
     <div className="bgclass">
       <div className="min-h-screen">
-        <div className="p-2">
-          <Link href="/">
-            <Image className="w-[20vh]" src={mainLogo} alt="logo" />
-          </Link>
-        </div>
+        <Link href="/">
+          <Image className="w-[20vh] p-2" src={mainLogo} alt="logo" />
+        </Link>
+
         <div className="grid grid-cols-8 gap-0 mt-16">
           <div> </div>
           <div className="text-center col-span-6">
@@ -162,7 +161,7 @@ function Category({ params }: any) {
           <div> </div>
         </div>
 
-        <div className="desktop:grid desktop:grid-cols-4 laptop:grid laptop:grid-cols-4 mobile:grid mobile:grid-cols-1 tablet:flex tablet:flex-grow tablet:flex-wrap tablet:gap-x-4 tablet:gap-y-8 mobile:gap-x-4 mobile:gap-y-8 desktop:mx-12 mobile:mx-0 desktop:py-8 laptop:py-8 mobile:py-4">
+        <div className="desktop:flex desktop:flex-wrap desktop:justify-start laptop:flex laptop:flex-wrap laptop:justify-start tablet:flex tablet:flex-wrap tablet:justify-center mobile:flex mobile:flex-wrap mobile:justify-center tablet:gap-x-4 tablet:gap-y-8 mobile:gap-x-4 mobile:gap-y-8 desktop:mx-12 mobile:mx-0 desktop:py-8 laptop:py-8 mobile:py-4 mx-auto my-auto">
           {productsDetails != undefined &&
             productsDetails.map((data, index) => {
               return (

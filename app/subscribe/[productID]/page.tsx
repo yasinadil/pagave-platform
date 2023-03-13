@@ -197,7 +197,7 @@ function Subscribe({ params }: any) {
               </div>
             </div>
           ) : (
-            <div className="card card-compact desktop:w-96 laptop:w-96 tablet:w-96 mobile:w-72 bg-base-100 shadow-xl">
+            <div className="card card-compact desktop:w-96 laptop:w-96 tablet:w-96 mobile:w-80 glassEffect shadow-xl">
               {/* <figure>
               <img
                 src="/images/stock/photo-1606107557195-0e29a4b5b4aa.jpg"

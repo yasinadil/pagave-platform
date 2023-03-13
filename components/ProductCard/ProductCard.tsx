@@ -69,9 +69,9 @@ function ProductCard(props) {
   }
 
   return (
-    <div className="card card-compact w-72 glassEffect shadow-xl text-white mx-auto my-auto">
+    <div className="card card-compact w-72 glassEffect shadow-xl text-white mx-0 my-0">
       <figure>
-        <img className="mx-auto my-auto" src={props.source} alt="logo" />
+        <img className="h-48 w-full" src={props.source} alt="logo" />
       </figure>
       <div className="card-body font-sans">
         <Link
@@ -82,27 +82,37 @@ function ProductCard(props) {
         >
           <h2 className="text-xl ">{props.name}</h2>
         </Link>
-        <p className="text-sm ">{props.description}</p>
+        <p className="text-sm h-14 text-left">{props.description}</p>
         <div className="card-actions justify-end">
           {props.subscription ? (
-            <button className=" glassEffect rounded-xl py-2 px-2 text-center w-full h-16">
-              {!subscribed && subEnded && (
-                <p className="text-base font-semibold">{props.cost} ETH</p>
-              )}
-              {subscribed && subEnded && (
-                <p className="text-base font-semibold">{props.cost} ETH</p>
-              )}
-              {!subscribed && !subEnded && (
-                <p className="text-base font-semibold">{props.cost} ETH</p>
-              )}
-              {!subscribed && <p className="font-light">Subscribe</p>}{" "}
-              {subscribed && subEnded && (
-                <p className="font-bold text-warning">Renew Subscription</p>
-              )}{" "}
-              {subscribed && !subEnded && (
-                <p className="font-bold text-green-600">Active Subscription</p>
-              )}{" "}
-            </button>
+            <Link
+              href={{
+                pathname: `/product/${props.id}`,
+                query: { catIndex: props.catid },
+              }}
+              className="rounded-xl w-full text-center glassEffect"
+            >
+              <button className=" glassEffect rounded-xl py-2 px-2 text-center w-full h-16">
+                {!subscribed && subEnded && (
+                  <p className="text-base font-semibold">{props.cost} ETH</p>
+                )}
+                {subscribed && subEnded && (
+                  <p className="text-base font-semibold">{props.cost} ETH</p>
+                )}
+                {!subscribed && !subEnded && (
+                  <p className="text-base font-semibold">{props.cost} ETH</p>
+                )}
+                {!subscribed && <p className="font-light">Subscribe</p>}{" "}
+                {subscribed && subEnded && (
+                  <p className="font-bold text-warning">Renew Subscription</p>
+                )}{" "}
+                {subscribed && !subEnded && (
+                  <p className="font-bold text-green-600">
+                    Active Subscription
+                  </p>
+                )}{" "}
+              </button>
+            </Link>
           ) : purchased ? (
             <Link
               href={{
