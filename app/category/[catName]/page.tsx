@@ -160,7 +160,7 @@ function Category({ params }: any) {
   return (
     <div className="bgclass">
       <div className="min-h-screen">
-        <Link href="/">
+        <Link className="inline-block" href="/">
           <Image className="w-[20vh] p-2" src={mainLogo} alt="logo" />
         </Link>
 

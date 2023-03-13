@@ -290,7 +290,7 @@ function Product({ params }: any) {
   return (
     <div className="bgclass min-h-screen font-normal text-white text-xl">
       <div className="p-2">
-        <Link href="/">
+        <Link className="inline-block" href="/">
           <Image className="w-[20vh]" src={Logo} alt="logo" priority={true} />
         </Link>
       </div>

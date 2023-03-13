@@ -88,7 +88,7 @@ function MintingPage() {
   return (
     <div className="hero min-h-screen bgclass text-white">
       <div className="fixed top-2 left-2">
-        <Link href="/">
+        <Link className="inline-block" href="/">
           <Image className="w-[20vh]" src={Logo} alt="logo" priority={true} />
         </Link>
       </div>

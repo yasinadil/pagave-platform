@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 function Account() {
   const { address, isConnected } = useAccount();
   const router = useRouter();
-  console.log(status);
 
   useEffect(() => {
     if (isConnected) {
