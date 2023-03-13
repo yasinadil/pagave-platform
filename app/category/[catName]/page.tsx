@@ -4,8 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import mainLogo from "/public/logo.png";
 import ProductCard from "../../../components/ProductCard/ProductCard";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { ethers } from "ethers";
+import { useAccount } from "wagmi";
 
 async function getAllProductsId(name: string) {
   const res = await fetch(
@@ -91,9 +92,35 @@ function Category({ params }: any) {
   const [categoryDetails, setCategoryDetails] = useState<category>();
   const [catIndex, setCatIndex] = useState<number>(0);
   const [status, setStatus] = useState<boolean>(true);
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const { address, isConnected } = useAccount();
 
   useEffect(() => {
+    if (isConnected && address) {
+      const getChainId = async () => {
+        try {
+          const provider = new ethers.providers.Web3Provider(
+            window.ethereum as any
+          );
+          const chainId = await provider
+            .getNetwork()
+            .then((network) => network.chainId);
+          console.log("Current chain ID:", chainId);
+          if (chainId != Number(process.env.NEXT_PUBLIC_CHAIN_ID!)) {
+            await provider.send("wallet_switchEthereumChain", [
+              { chainId: "0x" + process.env.NEXT_PUBLIC_CHAIN_ID! },
+            ]);
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      };
+      getChainId();
+    } else {
+      router.replace("/account");
+    }
+
     async function load() {
       const search = searchParams.get("catIndex");
       if (search != null) {
@@ -115,6 +142,7 @@ function Category({ params }: any) {
       }
       setStatus(false);
     }
+
     load();
   }, [catName, searchParams]);
 
