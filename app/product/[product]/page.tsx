@@ -124,7 +124,6 @@ function Product({ params }: any) {
 
       if (!accessres) {
         router.push(`/Minting?catIndex=${search}`);
-        setStatus(false);
       } else if (subscribe) {
         checkSubscription();
         setStatus(false);
