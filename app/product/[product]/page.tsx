@@ -96,34 +96,65 @@ function Product({ params }: any) {
   const [subEnded, setSubEnded] = useState<boolean>(false);
   const [videosrc, setVideoSrc] = useState<string>("");
   const [access, setAccess] = useState<boolean>(false);
+  const [status, setStatus] = useState<boolean>(true);
   const searchParams = useSearchParams();
   const search = searchParams.get("catIndex");
   const router = useRouter();
   const loadingVideo =
     "https://bafkreihwjxofnkk33xwjgtmhvj4k4dmogyzy72gjwzlsflnfppnv5lxosq.ipfs.nftstorage.link";
 
+  const checkAccess = async (address: string, catIndex: number) => {
+    const provider = new ethers.providers.Web3Provider(window.ethereum as any);
+    const signer = provider.getSigner(address);
+    const accessContract = new ethers.Contract(
+      accessContractAddress,
+      AccessABI,
+      signer
+    );
+
+    const access = await accessContract.accessGranted(address, catIndex);
+    return access;
+  };
+
+  async function accessWait() {
+    if (address != undefined && search != null) {
+      const accessres = await checkAccess(address, Number(search));
+      const productDetails: product = await getAllProduct(productId);
+      const subscribe = productDetails.subscription;
+
+      if (!accessres) {
+        router.push(`/Minting?catIndex=${search}`);
+        setStatus(false);
+      } else if (subscribe) {
+        checkSubscription();
+        setStatus(false);
+      } else {
+        load1();
+        load();
+        setStatus(false);
+      }
+    }
+  }
+
   useEffect(() => {
     if (isConnected && address) {
       accessWait();
     }
-
-    async function accessWait() {
-      if (address != undefined && search != null) {
-        const accessres = await checkAccess(address, Number(search));
-        const productDetails: product = await getAllProduct(productId);
-        const subscribe = productDetails.subscription;
-
-        if (!accessres) {
-          router.push(`/Minting?catIndex=${search}`);
-        } else if (subscribe) {
-          checkSubscription();
-        } else {
-          load1();
-          load();
-        }
-      }
-    }
   }, [productId, address, isConnected, searchParams, router]);
+
+  const getUrls = async (productId: string) => {
+    const response = await fetch("/api/getVideoInformation", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        productId,
+      }),
+    });
+    const data = await response.json();
+    return data.message as url[];
+  };
 
   const checkSubscription = async () => {
     const provider = new ethers.providers.Web3Provider(window.ethereum as any);
@@ -178,33 +209,6 @@ function Product({ params }: any) {
       }
     }
   }
-
-  const getUrls = async (productId: string) => {
-    const response = await fetch("/api/getVideoInformation", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        productId,
-      }),
-    });
-    const data = await response.json();
-    return data.message as url[];
-  };
-
-  const checkAccess = async (address: string, catIndex: number) => {
-    const provider = new ethers.providers.Web3Provider(window.ethereum as any);
-    const signer = provider.getSigner(address);
-    const accessContract = new ethers.Contract(
-      accessContractAddress,
-      AccessABI,
-      signer
-    );
-
-    const access = await accessContract.accessGranted(address, catIndex);
-    return access;
-  };
 
   const purchase = async (
     walletAddress: string,
@@ -285,6 +289,17 @@ function Product({ params }: any) {
     setVideoSrc(loadingVideo);
     const blobbed = await getBlobUrls(url);
     setVideoSrc(blobbed);
+  }
+
+  if (status) {
+    return (
+      <div className="hero min-h-screen bg-[#120F22]">
+        <div className="hero-content text-center bg-transparent">
+          <p className="text-purple-800">Loading </p>
+          <progress className="progress w-56"></progress>
+        </div>
+      </div>
+    );
   }
 
   return (
