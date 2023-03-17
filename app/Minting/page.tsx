@@ -111,7 +111,11 @@ function MintingPage() {
         <div className="hero-content text-center">
           <div className="card card-compact desktop:w-96 laptop:w-96 tablet:w-96 mobile:w-80 glassEffect shadow-xl">
             <figure>
-              <img src={Metadata.image} alt="NFT picture" />
+              <img
+                className="w-[20vh]"
+                src={Metadata.image}
+                alt="NFT picture"
+              />
             </figure>
             <div className="card-body">
               <h2 className="card-title">{Metadata.name}</h2>

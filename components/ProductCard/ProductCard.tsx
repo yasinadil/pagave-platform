@@ -82,7 +82,7 @@ function ProductCard(props) {
         >
           <h2 className="text-xl ">{props.name}</h2>
         </Link>
-        <p className="text-sm h-14 text-left">{props.description}</p>
+        <p className="text-sm text-left h-24">{props.description}</p>
         <div className="card-actions justify-end">
           {props.subscription ? (
             <Link

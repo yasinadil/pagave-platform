@@ -170,7 +170,7 @@ function Category({ params }: any) {
             <span className="bg-white bg-opacity-80 desktop:text-3xl mobile:text-2xl px-6 py-4 text-[#621B9E] heading">
               {catName}
             </span>
-            <p className="text-center text-white font-bold font-sans my-12 py-4 glassEffect rounded-2xl">
+            <p className="text-center text-white font-bold font-sans my-12 py-4 px-3 glassEffect rounded-2xl">
               {categoryDetails != undefined && categoryDetails.description}
             </p>
             {categoryDetails != undefined &&
